@@ -1,0 +1,16 @@
+# Downloaded dataset
+data/raw/
+
+# Python and test-generated files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local environments and editor settings
+.venv/
+.vscode/
+
+# Generated package files
+*.egg-info/
+build/
+dist/
