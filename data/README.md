@@ -40,3 +40,7 @@ These hashes were calculated from the downloaded FD001 files using `certutil -ha
 | `train_FD001.txt` | `963b5e22825b34d8b21c69e1aeb4af3e647050eb672ee8834ba4b5d91d2de0f8` |
 | `test_FD001.txt` | `3cda7109ce17bafb5443f2ac926cfcf88154b941b8c4cf95eb55d1ddd6f52851` |
 | `RUL_FD001.txt` | `a19c8ec94931949d0485bdc35118206e9c81c4547b422efb9cf86f4ceddbceca` |
+
+## Planned inference input
+
+A prediction will use actual observations from one engine, ordered through its current cycle. It must not use future measurements, a caller-calculated RUL, or the engine's eventual failure cycle. The required history length and features will be decided and tested in later versions.

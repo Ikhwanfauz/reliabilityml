@@ -1,0 +1,14 @@
+dataset: FD001
+raw_dir: data/raw
+
+files:
+  train: train_FD001.txt
+  test: test_FD001.txt
+  test_rul: RUL_FD001.txt
+
+expected:
+  train_engines: 100
+  test_engines: 100
+
+target:
+  cap: null
