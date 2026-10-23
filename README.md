@@ -91,6 +91,20 @@ evaluated: max_depth=3 scored 24.94 and max_depth=5 scored 25.17 cycles.
 These are cross-validation results. The existing saved model and API
 still use 33 features; they have not been replaced by this experiment.
 
+### V3 follow-up: endpoint error analysis
+
+Out-of-fold analysis evaluated one simulated endpoint for each of the
+80 CV engines using the 48-feature Random Forest. Pooled endpoint MAE
+was 24.04 cycles. For actual RUL 0-30 cycles (15 engines), MAE was
+6.13; for 31-100 (39 engines), MAE was 21.80; and for above 100
+(26 engines), MAE was 37.74.
+
+In the 31-100 group, mean prediction minus actual RUL was +13.82
+cycles: the model tended to overestimate remaining life in this group.
+The largest individual errors show that the mean score does not
+describe every engine. These are CV observations, not official test
+results or production monitoring.
+
 ## V4 experiment tracking
 
 Run `python scripts/log_selected_model.py` to train the CV-selected
