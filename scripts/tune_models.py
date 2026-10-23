@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from pathlib import Path
 
 import numpy as np
@@ -6,11 +7,12 @@ from sklearn.model_selection import GroupKFold
 
 from reliabilityml.baseline import regression_metrics, split_engine_ids
 from reliabilityml.evaluation import select_observation_rows
-from reliabilityml.features import build_features
+from reliabilityml.features import build_features, build_std_features
 from reliabilityml.model import (
     make_boosted_model,
     make_random_forest_model,
     make_ridge_model,
+    make_xgboost_model,
 )
 
 
@@ -19,6 +21,14 @@ TRAIN_PATH = ROOT / "data" / "raw" / "train_FD001.txt"
 
 
 def main():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--features",
+        choices=("original", "std"),
+        default="original",
+    )
+    args = parser.parse_args()
+    build = build_features if args.features == "original" else build_std_features
     history = pd.read_csv(TRAIN_PATH, sep=r"\s+", header=None)
     history.columns = (
         ["engine_id", "cycle"]
@@ -42,6 +52,10 @@ def main():
         "Boosted leaves=31": lambda: make_boosted_model().set_params(
             max_leaf_nodes=31
         ),
+        "XGBoost depth=3": make_xgboost_model,
+        "XGBoost depth=5": lambda: make_xgboost_model().set_params(
+            max_depth=5
+        ),
     }
     mae_by_candidate = {name: [] for name in candidates}
 
@@ -64,8 +78,8 @@ def main():
             set(fold_validation["engine_id"])
         )
 
-        x_train = build_features(fold_training)
-        x_validation_all = build_features(fold_validation)
+        x_train = build(fold_training)
+        x_validation_all = build(fold_validation)
         observations = select_observation_rows(fold_validation)
         x_observed = x_validation_all.loc[observations.index]
 

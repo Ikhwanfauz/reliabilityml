@@ -80,6 +80,17 @@ once on the official endpoint of each of the 100 test engines:
 The simulated validation endpoints and official test endpoints are different
 evaluation sets. Official test answers are not used to choose model settings.
 
+### V3 follow-up: 48-feature model comparison
+
+Using the 48-feature candidate selected in the V2 follow-up, grouped
+3-fold cross-validation compared seven model settings on the original
+80 training engines. Random Forest with min_samples_leaf=3 remained
+the best candidate at 24.13 cycles mean endpoint MAE. XGBoost was also
+evaluated: max_depth=3 scored 24.94 and max_depth=5 scored 25.17 cycles.
+
+These are cross-validation results. The existing saved model and API
+still use 33 features; they have not been replaced by this experiment.
+
 ## V4 experiment tracking
 
 Run `python scripts/log_selected_model.py` to train the CV-selected

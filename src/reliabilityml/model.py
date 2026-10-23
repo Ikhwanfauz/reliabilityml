@@ -2,6 +2,7 @@ from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegresso
 from sklearn.linear_model import Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
+from xgboost import XGBRegressor
 
 
 def make_ridge_model():
@@ -25,5 +26,18 @@ def make_boosted_model():
         learning_rate=0.08,
         l2_regularization=1.0,
         early_stopping=False,
+        random_state=42,
+    )
+
+def make_xgboost_model():
+    return XGBRegressor(
+        n_estimators=200,
+        max_depth=3,
+        learning_rate=0.05,
+        subsample=0.9,
+        colsample_bytree=0.9,
+        objective="reg:squarederror",
+        tree_method="hist",
+        n_jobs=4,
         random_state=42,
     )
