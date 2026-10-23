@@ -62,3 +62,23 @@ once on the official endpoint of each of the 100 test engines:
 
 The simulated validation endpoints and official test endpoints are different
 evaluation sets. Official test answers are not used to choose model settings.
+
+## V4 experiment tracking
+
+Run `python scripts/log_selected_model.py` to train the CV-selected
+Random Forest (`min_samples_leaf=3`) on all 100 FD001 training engines
+and log it to a local MLflow experiment named `ReliabilityML-FD001`.
+The run records model settings, training data counts, 33 input features,
+and the previously measured 3-fold grouped CV MAE of 25.11 cycles.
+This script does not evaluate the official test set again.
+
+The script saves the model, reloads it, and checks that its predictions
+match. To inspect runs locally, start the UI with:
+
+```bat
+mlflow server --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5000
+```
+
+Then open `http://127.0.0.1:5000` and select the
+`ReliabilityML-FD001` experiment. Local MLflow database and artifacts
+are excluded from Git.
