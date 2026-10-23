@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -34,7 +35,7 @@ def main():
     }
 
     request = Request(
-        "http://127.0.0.1:8000/predict",
+        os.environ.get("RELIABILITYML_API_URL", "http://127.0.0.1:8000/predict"),
         data=json.dumps(payload).encode("utf-8"),
         headers={"Content-Type": "application/json"},
         method="POST",

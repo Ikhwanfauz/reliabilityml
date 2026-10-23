@@ -17,3 +17,4 @@ dist/
 mlflow.db*
 mlruns/
 mlartifacts/
+local_models/

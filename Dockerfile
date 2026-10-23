@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+COPY pyproject.toml README.md ./
+COPY src ./src
+COPY configs/model_constraints.txt ./configs/model_constraints.txt
+
+RUN python -m pip install --no-cache-dir -c configs/model_constraints.txt . "skops==0.16.0"
+
+EXPOSE 8000
+
+CMD ["python", "-m", "uvicorn", "reliabilityml.api:app", "--host", "0.0.0.0", "--port", "8000"]
