@@ -82,3 +82,32 @@ mlflow server --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 50
 Then open `http://127.0.0.1:5000` and select the
 `ReliabilityML-FD001` experiment. Local MLflow database and artifacts
 are excluded from Git.
+
+## V5 local inference API
+
+The saved V4 model can predict RUL from the observed cycle history of one
+FD001 engine. `src/reliabilityml/inference.py` builds the same features used
+during training and predicts from the latest observed cycle.
+
+On a fresh setup, run `python scripts/log_selected_model.py` first and copy
+the Model URI printed by the script. In Anaconda Prompt, from the project
+folder, set that URI and start the local API:
+
+```bat
+conda activate reliabilityml
+set RELIABILITYML_MODEL_URI=models:/YOUR_MODEL_ID
+python -m uvicorn reliabilityml.api:app --app-dir src --host 127.0.0.1 --port 8000
+```
+
+In a second Anaconda Prompt, from the project folder, try:
+
+```bat
+conda activate reliabilityml
+python scripts/smoke_api.py
+```
+
+The smoke script sends the observed history of FD001 test engine 1 to
+`POST /predict`. The API returns the engine ID, latest observed cycle,
+and predicted RUL in cycles. `scripts/predict_engine.py` provides a
+command-line prediction using the same saved model. The local MLflow
+database and saved model artifacts are excluded from Git.
