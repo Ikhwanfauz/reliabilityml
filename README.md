@@ -45,6 +45,23 @@ the current and earlier cycles of the same engine. On the V1 grouped split,
 Ridge achieved MAE 26.28 cycles and RMSE 33.16 cycles across all validation
 rows. These all-row scores are not directly comparable to V3 endpoint scores.
 
+## V2 follow-up: sequential sensor features
+
+The original pipeline uses 33 features per cycle. A follow-up experiment
+added rolling standard deviation, one-cycle lag, one-cycle change, and
+five-cycle trend for each of the 15 selected sensors (93 features total).
+Features use only the current and earlier cycles of the same engine.
+
+Using the original 80 training engines, grouped 3-fold cross-validation
+compared Random Forest models with identical settings and observation
+cycles. Mean endpoint MAE was 25.11 cycles for the original 33 features,
+24.38 for all 93 features, and 24.13 for the 48-feature set containing
+the original features plus rolling standard deviations.
+
+The 48-feature set is the candidate for further model comparison. These
+are cross-validation results, not official test scores. The existing API
+and saved model still use the original 33 features.
+
 ## V3 model evaluation
 
 FD001 uses uncapped RUL in operating cycles. Model selection used grouped

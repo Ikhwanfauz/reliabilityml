@@ -1,6 +1,11 @@
 import pandas as pd
 
-from reliabilityml.features import BASE_FEATURES, build_features
+from reliabilityml.features import (
+    BASE_FEATURES,
+    build_features,
+    build_sequence_features,
+    build_std_features
+)
 
 
 def make_history():
@@ -32,3 +37,40 @@ def test_future_cycle_does_not_change_earlier_features():
     changed = build_features(history)
 
     assert original.loc[:1].equals(changed.loc[:1])
+
+def test_sequence_features_reset_at_engine_boundary():
+    features = build_sequence_features(make_history())
+
+    assert features.shape[1] == 93
+    assert features["sensor_2_lag_1"].tolist() == [
+        2.0, 2.0, 4.0, 20.0, 20.0
+    ]
+    assert features["sensor_2_change_1"].tolist() == [
+        0.0, 2.0, 2.0, 0.0, 20.0
+    ]
+    assert features["sensor_2_trend_5"].tolist() == [
+        0.0, 2.0, 2.0, 0.0, 20.0
+    ]
+    assert features["sensor_2_std_5"].iloc[0] == 0.0
+    assert features["sensor_2_std_5"].iloc[3] == 0.0
+    assert not features.isna().any().any()
+
+
+def test_future_cycle_does_not_change_earlier_sequence_features():
+    history = make_history()
+    original = build_sequence_features(history)
+
+    history.loc[2, "sensor_2"] = 600.0
+    changed = build_sequence_features(history)
+
+    assert original.loc[:1].equals(changed.loc[:1])
+
+def test_std_features_have_fixed_columns_and_reset_per_engine():
+    features = build_std_features(make_history())
+
+    assert features.shape == (5, 48)
+    assert features.columns[-1] == "sensor_21_std_5"
+    assert features["sensor_2_std_5"].iloc[0] == 0.0
+    assert features["sensor_2_std_5"].iloc[2] == 2.0
+    assert features["sensor_2_std_5"].iloc[3] == 0.0
+    assert not features.isna().any().any()
