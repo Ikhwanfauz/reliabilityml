@@ -167,6 +167,26 @@ Then open `http://127.0.0.1:5000` and select the
 `ReliabilityML-FD001` experiment. Local MLflow database and artifacts
 are excluded from Git.
 
+### V4 follow-up: local model registry
+
+The local MLflow Registry contains `ReliabilityML-FD001-RUL` version 1
+(original 33 features) and version 2 (33 features plus 15 rolling standard
+deviations). Version 2 is the `champion` alias. Its training run records
+grouped CV endpoint MAE 24.13 and official test endpoint MAE 20.58.
+The official test had been examined earlier; see the V3 evaluation notes.
+
+Run `python scripts\register_std_model.py` to train and register the
+48-feature model in an MLflow store where version 1 already exists.
+Running it again creates another version. The MLflow database and model
+artifacts are local and ignored by Git; cloning this repository does not
+restore these registered versions.
+
+For the local API, set `RELIABILITYML_MODEL_URI` to
+`models:/ReliabilityML-FD001-RUL@champion` before starting Uvicorn.
+Restart the API after changing the alias because the loaded model is cached.
+The existing Docker export in `local_models` still contains the original
+33-feature model; it has not been updated to version 2.
+
 ## V5 local inference API
 
 The saved V4 model can predict RUL from the observed cycle history of one
