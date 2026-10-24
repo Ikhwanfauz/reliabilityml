@@ -69,3 +69,44 @@ def test_predict_rejects_nonfinite_sensor_and_setting():
     response = client.post("/predict", json=bad_setting)
     assert response.status_code == 422
     assert "finite" in response.json()["detail"]
+
+def test_predict_records_latest_endpoint_when_monitoring_enabled(
+    monkeypatch, tmp_path
+):
+    import json
+    import sqlite3
+
+    db_path = tmp_path / "events.db"
+    monkeypatch.setenv("RELIABILITYML_MONITORING_DB", str(db_path))
+    monkeypatch.setenv(
+        "RELIABILITYML_MODEL_URI", "models:/ReliabilityML-FD001-RUL/2"
+    )
+    monkeypatch.setattr(api, "get_model", lambda: FakeModel())
+
+    payload = make_payload()
+    payload["history"][0]["sensors"]["sensor_2"] = 999.0
+    response = client.post("/predict", json=payload)
+
+    assert response.status_code == 200
+    with sqlite3.connect(db_path) as connection:
+        row = connection.execute(
+            "SELECT model_uri, endpoint_inputs_json FROM prediction_events"
+        ).fetchone()
+
+    assert row[0] == "models:/ReliabilityML-FD001-RUL/2"
+    assert json.loads(row[1])["sensor_2"] == 2.0
+
+
+def test_monitoring_write_failure_does_not_block_prediction(
+    monkeypatch, tmp_path
+):
+    monkeypatch.setenv(
+        "RELIABILITYML_MONITORING_DB",
+        str(tmp_path / "missing_folder" / "events.db"),
+    )
+    monkeypatch.setattr(api, "get_model", lambda: FakeModel())
+
+    response = client.post("/predict", json=make_payload())
+
+    assert response.status_code == 200
+    assert response.json()["predicted_rul_cycles"] == 17.5

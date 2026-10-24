@@ -267,3 +267,20 @@ conda activate reliabilityml
 set RELIABILITYML_API_URL=http://127.0.0.1:8001/predict
 python scripts\smoke_api.py
 ```
+
+## Monitoring follow-up: local prediction events
+
+Set `RELIABILITYML_MONITORING_DB=monitoring.db` before starting the local
+API to save successful prediction events. Each SQLite row records UTC time,
+engine ID, observed cycle, predicted RUL, model URI, and the endpoint's
+two operating settings plus 15 sensor readings. The API still returns its
+prediction if writing a monitoring event fails, and logs that failure.
+
+The database is generated locally and ignored by Git. A smoke request
+using Registry `champion` (version 2) stored engine 1, cycle 31, predicted
+RUL 180.89, and 17 input values. This verifies event collection; it does
+not establish data drift or model performance after deployment. True RUL
+labels are not available from live prediction requests.
+
+The current Docker image was built before this monitoring change. A
+persistent Docker deployment would also need a mounted database path.

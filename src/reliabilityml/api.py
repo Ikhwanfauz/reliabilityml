@@ -6,8 +6,10 @@ import mlflow.sklearn
 import pandas as pd
 import math
 import logging
+import sqlite3
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from reliabilityml.monitoring import record_prediction
 
 from reliabilityml.features import SENSORS
 from reliabilityml.inference import predict_endpoint_rul
@@ -76,7 +78,7 @@ def predict(request: PredictionRequest):
             }
         )
 
-        history = pd.DataFrame(rows)
+    history = pd.DataFrame(rows)
     try:
         prediction = predict_endpoint_rul(history, get_model())
     except ValueError as error:
@@ -92,6 +94,29 @@ def predict(request: PredictionRequest):
         "observed_cycle": int(history["cycle"].max()),
         "predicted_rul_cycles": round(prediction, 2),
     }
+
+    monitoring_db = os.environ.get("RELIABILITYML_MONITORING_DB")
+    if monitoring_db:
+        endpoint = history.loc[history["cycle"].idxmax()]
+        endpoint_inputs = {
+            name: float(endpoint[name])
+            for name in ("setting_1", "setting_2", *SENSORS)
+        }
+        try:
+            record_prediction(
+                monitoring_db,
+                engine_id=result["engine_id"],
+                observed_cycle=result["observed_cycle"],
+                predicted_rul_cycles=result["predicted_rul_cycles"],
+                model_uri=os.environ.get("RELIABILITYML_MODEL_URI", "unset"),
+                endpoint_inputs=endpoint_inputs,
+            )
+        except (sqlite3.Error, OSError):
+            logger.exception(
+                "monitoring_write_failed engine_id=%s",
+                request.engine_id,
+            )
+
     logger.info(
         "prediction_success engine_id=%s observed_cycle=%s "
         "predicted_rul_cycles=%s model_uri=%s",
