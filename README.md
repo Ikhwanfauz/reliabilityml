@@ -105,6 +105,31 @@ The largest individual errors show that the mean score does not
 describe every engine. These are CV observations, not official test
 results or production monitoring.
 
+### V3 follow-up: TensorFlow sequence experiment
+
+A CPU-based TensorFlow LSTM used 30 consecutive cycles with 18 input
+features per cycle. Windows stayed within one engine and ended at the
+prediction cycle. Normalization was fitted only on each training fold.
+
+On the same grouped 3-fold splits and observed endpoints, a 48-feature
+Random Forest scored 24.35 mean endpoint MAE; the LSTM scored 32.70.
+For this comparison, both models trained on endpoints with complete
+30-cycle windows. The Forest remains the preferred candidate. This
+single LSTM configuration does not establish that all LSTMs perform worse.
+
+To reproduce the optional experiment in Anaconda Prompt from the project
+folder:
+
+```bat
+conda create -n reliabilityml-tf python=3.11 pip -y
+conda activate reliabilityml-tf
+python -m pip install -e ".[tensorflow]" "pytest>=9,<10" "httpx2>=2,<3"
+python scripts\compare_lstm.py
+```
+
+The existing saved model and API still use the original 33 features.
+These are cross-validation results, not official test scores.
+
 ## V4 experiment tracking
 
 Run `python scripts/log_selected_model.py` to train the CV-selected

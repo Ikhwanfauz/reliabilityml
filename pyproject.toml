@@ -18,6 +18,9 @@ dependencies = [
     "xgboost-cpu==3.2.0",
 ]
 
+[project.optional-dependencies]
+tensorflow = ["tensorflow==2.21.0"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
