@@ -184,8 +184,20 @@ restore these registered versions.
 For the local API, set `RELIABILITYML_MODEL_URI` to
 `models:/ReliabilityML-FD001-RUL@champion` before starting Uvicorn.
 Restart the API after changing the alias because the loaded model is cached.
-The existing Docker export in `local_models` still contains the original
-33-feature model; it has not been updated to version 2.
+The original 33-feature Docker export remains directly in `local_models`.
+Version 2 was exported separately to `local_models\v2`. Both directories
+are ignored by Git. From Anaconda Prompt in the project folder, test the
+version 2 artifact in Docker with:
+
+```bat
+docker build -t reliabilityml-api:std48 .
+docker run -d --name reliabilityml-std48 -p 8003:8000 -e RELIABILITYML_MODEL_URI=/app/model -v "%cd%\local_models\v2:/app/model:ro" reliabilityml-api:std48
+set RELIABILITYML_API_URL=http://127.0.0.1:8003/predict
+python scripts\smoke_api.py
+```
+
+The local and Docker API smoke tests both returned 180.89 predicted RUL
+cycles for FD001 test engine 1 at observed cycle 31.
 
 ## V5 local inference API
 
