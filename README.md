@@ -130,6 +130,23 @@ python scripts\compare_lstm.py
 The existing saved model and API still use the original 33 features.
 These are cross-validation results, not official test scores.
 
+### V3 follow-up: selected feature set
+
+Grouped 3-fold CV on 80 engines selected the 48-feature Random Forest
+(min_samples_leaf=3) by endpoint MAE: 24.13 cycles versus 25.11 for
+the original 33 features. On the same 20 validation endpoints, MAE was
+18.08 versus 18.48 cycles.
+
+On the 100 official FD001 test endpoints, the 48-feature model scored
+MAE 20.58 and RMSE 28.96 cycles; the original 33-feature model scored
+MAE 20.85 and RMSE 29.27. These are small differences. The official
+test had already been examined during earlier development, so this
+comparison is descriptive, not an untouched final test. The saved
+MLflow model and API still use 33 features.
+
+Reproduce with `python scripts\compare_validation_features.py` and
+`python scripts\compare_official_features.py`.
+
 ## V4 experiment tracking
 
 Run `python scripts/log_selected_model.py` to train the CV-selected
