@@ -4,13 +4,15 @@ from functools import lru_cache
 import mlflow
 import mlflow.sklearn
 import pandas as pd
+import math
+import logging
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from reliabilityml.features import SENSORS
 from reliabilityml.inference import predict_endpoint_rul
 
-
+logger = logging.getLogger("uvicorn.error")
 app = FastAPI(title="ReliabilityML FD001")
 
 
@@ -53,6 +55,17 @@ def predict(request: PredictionRequest):
                 detail=f"Each observation needs exactly these sensors: {SENSORS}",
             )
 
+        values = (
+            observation.setting_1,
+            observation.setting_2,
+            *observation.sensors.values(),
+        )
+        if not all(math.isfinite(value) for value in values):
+            raise HTTPException(
+                status_code=422,
+                detail="Settings and sensor readings must be finite",
+            )
+
         rows.append(
             {
                 "engine_id": request.engine_id,
@@ -63,14 +76,28 @@ def predict(request: PredictionRequest):
             }
         )
 
-    history = pd.DataFrame(rows)
+        history = pd.DataFrame(rows)
     try:
         prediction = predict_endpoint_rul(history, get_model())
     except ValueError as error:
+        logger.warning(
+            "prediction_rejected engine_id=%s reason=%s",
+            request.engine_id,
+            error,
+        )
         raise HTTPException(status_code=422, detail=str(error)) from error
 
-    return {
+    result = {
         "engine_id": request.engine_id,
         "observed_cycle": int(history["cycle"].max()),
         "predicted_rul_cycles": round(prediction, 2),
     }
+    logger.info(
+        "prediction_success engine_id=%s observed_cycle=%s "
+        "predicted_rul_cycles=%s model_uri=%s",
+        result["engine_id"],
+        result["observed_cycle"],
+        result["predicted_rul_cycles"],
+        os.environ.get("RELIABILITYML_MODEL_URI", "unset"),
+    )
+    return result

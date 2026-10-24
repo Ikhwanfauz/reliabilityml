@@ -56,3 +56,16 @@ def test_predict_rejects_missing_cycle(monkeypatch):
 
     assert response.status_code == 422
     assert "consecutive" in response.json()["detail"]
+
+def test_predict_rejects_nonfinite_sensor_and_setting():
+    bad_sensor = make_payload()
+    bad_sensor["history"][0]["sensors"]["sensor_2"] = "Infinity"
+    response = client.post("/predict", json=bad_sensor)
+    assert response.status_code == 422
+    assert "finite" in response.json()["detail"]
+
+    bad_setting = make_payload()
+    bad_setting["history"][0]["setting_1"] = "NaN"
+    response = client.post("/predict", json=bad_setting)
+    assert response.status_code == 422
+    assert "finite" in response.json()["detail"]
