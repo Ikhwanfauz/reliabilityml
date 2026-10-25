@@ -284,3 +284,25 @@ labels are not available from live prediction requests.
 
 The current Docker image was built before this monitoring change. A
 persistent Docker deployment would also need a mounted database path.
+
+### Drift demonstration
+
+`python scripts\check_drift.py` compares the latest recorded event per
+engine for the fixed version 2 model with 100 FD001 test endpoints.
+It checks 17 input values and the predicted RUL distribution. The checker
+needs at least 30 distinct recorded engines. For each value, it reports
+the difference between current and reference means divided by the
+reference standard deviation; a value of at least 1.0 raises an alert.
+
+`python scripts\replay_monitoring.py` sends 30 FD001 test engines through
+FastAPI's in-process TestClient and records their predictions. This
+requires `RELIABILITYML_MODEL_URI=models:/ReliabilityML-FD001-RUL/2`
+and `RELIABILITYML_MONITORING_DB=monitoring.db` in Anaconda Prompt.
+Replaying with `--sensor2-offset 3.0` deliberately changed sensor 2
+and produced a sensor 2 alert (shift 6.59); prediction shift was 0.34.
+
+This is a simulated monitoring demonstration using FD001 data, not
+observed production drift. The reference overlaps the replayed dataset,
+the threshold is exploratory, and no live failure labels are available
+to calculate post-deployment MAE. The local monitoring database contains
+synthetic replay events and is ignored by Git.
