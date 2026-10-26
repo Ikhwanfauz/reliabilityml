@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -34,10 +35,22 @@ def main():
         ],
     }
 
+    headers = {"Content-Type": "application/json"}
+    if os.environ.get("RELIABILITYML_AUTH") == "gcloud":
+        token = subprocess.run(
+            ["gcloud.cmd", "auth", "print-identity-token"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        if not token:
+            raise RuntimeError("gcloud did not return an identity token")
+        headers["Authorization"] = f"Bearer {token}"
+
     request = Request(
         os.environ.get("RELIABILITYML_API_URL", "http://127.0.0.1:8000/predict"),
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+        headers=headers,
         method="POST",
     )
     with urlopen(request, timeout=30) as response:
