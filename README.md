@@ -6,7 +6,16 @@ Dataset: NASA C-MAPSS FD001.
 
 ## Current scope
 
-V0 establishes the development environment, repository structure, dataset documentation, and a tested data loader. Model training and evaluation begin in later versions.
+ReliabilityML loads and validates NASA C-MAPSS FD001 data, engineers causal
+sensor features, compares RUL models with engine-grouped validation, and
+evaluates predictions at observed engine endpoints. The selected 48-feature
+Random Forest is tracked and versioned locally with MLflow and served through
+a FastAPI inference service.
+
+The project also includes automated tests, a GitHub Actions test and Docker
+build gate, a containerized API, and a local monitoring and drift demonstration.
+The deployment-ready Docker image has passed local smoke tests. Google Cloud
+deployment has not been performed.
 
 ## Environment
 
@@ -58,9 +67,10 @@ cycles. Mean endpoint MAE was 25.11 cycles for the original 33 features,
 24.38 for all 93 features, and 24.13 for the 48-feature set containing
 the original features plus rolling standard deviations.
 
-The 48-feature set is the candidate for further model comparison. These
-are cross-validation results, not official test scores. The existing API
-and saved model still use the original 33 features.
+The 48-feature set is the candidate for further model comparison.
+These are cross-validation results, not official test scores.
+At the time of this experiment, the saved model used 33 features.
+The later Registry champion uses 48 features.
 
 ## V3 model evaluation
 
@@ -88,8 +98,8 @@ Using the 48-feature candidate selected in the V2 follow-up, grouped
 the best candidate at 24.13 cycles mean endpoint MAE. XGBoost was also
 evaluated: max_depth=3 scored 24.94 and max_depth=5 scored 25.17 cycles.
 
-These are cross-validation results. The existing saved model and API
-still use 33 features; they have not been replaced by this experiment.
+These are cross-validation results. This experiment did not immediately
+replace the 33-feature model. The later Registry champion uses 48 features.
 
 ### V3 follow-up: endpoint error analysis
 
@@ -127,8 +137,9 @@ python -m pip install -e ".[tensorflow]" "pytest>=9,<10" "httpx2>=2,<3"
 python scripts\compare_lstm.py
 ```
 
-The existing saved model and API still use the original 33 features.
-These are cross-validation results, not official test scores.
+The LSTM remains an optional experiment; the later Registry champion
+uses the 48-feature Random Forest. These are cross-validation results,
+not official test scores.
 
 ### V3 follow-up: selected feature set
 
@@ -141,8 +152,9 @@ On the 100 official FD001 test endpoints, the 48-feature model scored
 MAE 20.58 and RMSE 28.96 cycles; the original 33-feature model scored
 MAE 20.85 and RMSE 29.27. These are small differences. The official
 test had already been examined during earlier development, so this
-comparison is descriptive, not an untouched final test. The saved
-MLflow model and API still use 33 features.
+comparison is descriptive, not an untouched final test. The 48-feature
+model was subsequently registered as version 2 and selected as the
+Registry champion.
 
 Reproduce with `python scripts\compare_validation_features.py` and
 `python scripts\compare_official_features.py`.
@@ -232,8 +244,10 @@ database and saved model artifacts are excluded from Git.
 
 The GitHub Actions workflow in `.github/workflows/ci.yml` installs the
 project with Python 3.11 and runs pytest on pushes and pull requests to
-`main`. The tests use small test fixtures, so the downloaded FD001 data
-and local MLflow model are not required by CI.
+`main`. After tests pass, a separate job builds the API Docker image.
+The tests use small fixtures, so CI does not need the downloaded FD001
+data or a local MLflow model. CI verifies that the image builds; it does
+not deploy the service.
 
 ## V7 Docker API
 
@@ -282,8 +296,11 @@ RUL 180.89, and 17 input values. This verifies event collection; it does
 not establish data drift or model performance after deployment. True RUL
 labels are not available from live prediction requests.
 
-The current Docker image was built before this monitoring change. A
-persistent Docker deployment would also need a mounted database path.
+The deployment-ready `deploy-v2` image contains the current API code.
+Its local smoke test verified inference, but Cloud Run deployment has
+not been performed. SQLite monitoring needs persistent storage to keep
+events across container restarts; the current Cloud Run trial plan does
+not provide that storage.
 
 ### Drift demonstration
 
