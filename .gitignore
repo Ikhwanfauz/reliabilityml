@@ -19,3 +19,4 @@ mlruns/
 mlartifacts/
 local_models/
 monitoring.db*
+gha-creds-*.json
