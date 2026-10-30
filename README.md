@@ -14,8 +14,9 @@ a FastAPI inference service.
 
 The project also includes automated tests, a GitHub Actions test and Docker
 build gate, a containerized API, and a local monitoring and drift demonstration.
-The deployment-ready Docker image has passed local smoke tests. Google Cloud
-deployment has not been performed.
+The image passed local and private Cloud Run smoke tests. Manual GitHub
+Actions CD also deployed it successfully. The cloud trial was then
+cleaned up and project billing was disabled; no cloud endpoint is active.
 
 ## Environment
 
@@ -296,11 +297,11 @@ RUL 180.89, and 17 input values. This verifies event collection; it does
 not establish data drift or model performance after deployment. True RUL
 labels are not available from live prediction requests.
 
-The deployment-ready `deploy-v2` image contains the current API code.
-Its local smoke test verified inference, but Cloud Run deployment has
-not been performed. SQLite monitoring needs persistent storage to keep
-events across container restarts; the current Cloud Run trial plan does
-not provide that storage.
+The `deploy-v2` image contains the API and registered 48-feature model.
+Private Cloud Run inference and manual GitHub Actions CD were verified,
+then the cloud service and image repository were deleted and billing was
+disabled. SQLite monitoring needs persistent storage across container
+restarts; that storage was outside the scope of the cloud trial.
 
 ### Drift demonstration
 

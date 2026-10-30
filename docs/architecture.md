@@ -16,10 +16,13 @@ The selected model is a Random Forest using 48 features and
 of an engine within the same group. Inference uses only observed cycles
 from one engine to construct its endpoint features.
 
-GitHub Actions runs pytest and then builds the API Docker image.
-The deployment-ready image includes the version 2 model and passed
-local `/health` and `/predict` smoke tests.
+GitHub Actions runs pytest and builds the API Docker image in CI.
+A separate manual CD workflow uses GitHub OIDC to deploy the existing
+version 2 model image to private Cloud Run. Revision
+`reliabilityml-api-00003-bl6` passed an authenticated prediction smoke
+test with 180.89 predicted cycles for test engine 1.
 
-Cloud Run deployment has not been performed. The SQLite events and
-drift check are local demonstrations; the planned cloud trial does not
-provide persistent monitoring storage or live failure labels.
+After the trial, the Cloud Run service and Artifact Registry repository
+were deleted and project billing was disabled. The cloud endpoint is
+not currently active. SQLite monitoring and drift checks remain local
+demonstrations without persistent cloud storage or live failure labels.

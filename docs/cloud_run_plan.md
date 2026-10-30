@@ -1,45 +1,34 @@
-# ReliabilityML Cloud Run trial plan
+# ReliabilityML Cloud Run trial
 
-Project: reliabilityml-ikhwan-2026
-Region: asia-southeast1 (Singapore)
-Service: reliabilityml-api
-Artifact Registry repository: reliabilityml
-Image: reliabilityml-api:deploy-v2 (includes the 48-feature model)
+Project: `reliabilityml-ikhwan-2026`
+Region: `asia-southeast1`
+Service: `reliabilityml-api` (private)
+Image: `reliabilityml-api:deploy-v2` with the 48-feature model
 
-Proposed Cloud Run settings:
-- CPU: 1
-- Memory: 1 GiB
-- Minimum instances: 0
-- Maximum instances: 1
-- Concurrency: 1
-- Container port: 8000
-- Access: private for the first deployment
+Cloud Run used 1 CPU, 1 GiB memory, minimum 0 and maximum 1 instance,
+concurrency 1, and port 8000.
 
-Local evidence:
-- /health returned {"status":"ok"}.
-- /predict returned 180.89 cycles for test engine 1 at cycle 31.
-- The prediction succeeded with a 1 GiB Docker memory limit.
-- Memory measured after that prediction: 259.8 MiB.
+## Verification
 
-Cost and cleanup:
-- Check current GCP pricing and billing status before deployment.
-- Artifact Registry stores the uploaded image until its repository is deleted.
-- After the cloud smoke test, delete the Cloud Run service and Artifact Registry repository.
-- Verify both are gone, then unlink billing from this project if it was linked.
-- A budget alert alone does not stop charges.
+The image was pushed to Artifact Registry and deployed to Cloud Run.
+Authenticated `/predict` for FD001 test engine 1 at cycle 31 returned
+180.89 predicted RUL cycles. Unauthenticated `/health` returned HTTP 403.
 
-Limitations:
-- The local SQLite monitoring database is not persistent Cloud Run storage.
-- This trial tests cloud inference, not persistent cloud monitoring.
-- The local RAM measurement is not a peak-load guarantee.
+The manual GitHub Actions CD workflow ran tests, authenticated using
+GitHub OIDC, and deployed the existing image. Revision
+`reliabilityml-api-00003-bl6` used `reliabilityml-runtime` and passed
+the same authenticated prediction smoke test.
 
-## Windows Anaconda Prompt setup
+This workflow deploys an existing image; it does not build and push
+a new image for each code change.
 
-If `where gcloud` cannot find Google Cloud CLI, run this in the current Prompt:
+## Cleanup and current status
 
-    set "PATH=%LOCALAPPDATA%\Google\Cloud SDK\google-cloud-sdk\bin;%PATH%"
+The Cloud Run service and Artifact Registry repository were deleted;
+each list command returned 0 items. Project billing was unlinked and
+verified as `billingEnabled: false`. The cloud endpoint is no longer live.
+A future cloud deployment requires restoring billing, the repository,
+and its image. Earlier usage charges may be reported later.
 
-For a private Cloud Run smoke test, set `RELIABILITYML_API_URL` to the
-service URL ending in `/predict` and set `RELIABILITYML_AUTH=gcloud`.
-The smoke script obtains an ID token without printing or saving it.
-Clear the auth setting afterwards with `set RELIABILITYML_AUTH=`.
+SQLite monitoring and drift checks were demonstrated locally. The cloud
+trial did not include persistent monitoring storage or live failure labels.
