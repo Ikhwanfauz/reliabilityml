@@ -18,6 +18,20 @@ The image passed local and private Cloud Run smoke tests. Manual GitHub
 Actions CD also deployed it successfully. The cloud trial was then
 cleaned up and project billing was disabled; no cloud endpoint is active.
 
+## Project evidence
+
+**MLflow model registry:** Version 2 uses 48 features and has the `champion` alias.
+
+![MLflow model registry showing the champion model](docs/images/mlflow-champion.png)
+
+**Local API prediction:** Test engine 1 at cycle 31 returned a predicted RUL of 180.89 cycles.
+
+![Local API prediction result](docs/images/api-prediction.png)
+
+**Cloud deployment trial:** The manually triggered GitHub Actions workflow passed its tests and deployed to Cloud Run. The cloud service and image repository were deleted after the trial.
+
+![Successful Cloud Run deployment workflow](docs/images/cd-success.png)
+
 ## Environment
 
 Create and activate the dedicated Conda environment:
